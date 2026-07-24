@@ -99,6 +99,18 @@ function createWomenCircle({ paper, printedPaper, winePaper, darkPaper, profile 
     circle.add(figure);
   }
 
+  circle.updateMatrixWorld(true);
+  figures.forEach((figure, index) => {
+    const nextFigure = figures[(index + 1) % figures.length];
+    figure.updateMatrix();
+    nextFigure.updateMatrix();
+    const start = new THREE.Vector3(.65, .76, .025).applyMatrix4(figure.matrix);
+    const end = new THREE.Vector3(-.65, .76, .025).applyMatrix4(nextFigure.matrix);
+    const joinedHands = foldedLimb(start, end, paper, .018, .025);
+    joinedHands.name = `joined-hands-${index}`;
+    circle.add(joinedHands);
+  });
+
   circle.userData.update = (time) => {
     // Doce poses discretas forman un ciclo de tres segundos: stop-motion de papel.
     const pose = Math.floor(time / 250) % 12;
@@ -251,16 +263,20 @@ function createPleatedSkirt({ paper, printedPaper, variant }) {
 
 function createLayeredHair({ darkPaper, variant }) {
   const hair = new THREE.Group();
-  const cap = mesh(
-    new THREE.SphereGeometry(.175, 7, 4, 0, Math.PI * 2, 0, Math.PI * .72),
-    darkPaper,
-    0x22282a,
-    .66
-  );
-  cap.scale.set(1.08, 1, .96);
-  cap.position.y = 1.405;
-  cap.rotation.y = variant * .17;
-  hair.add(cap);
+  const crownBack = panel([
+    [-.24, 1.42], [-.18, 1.56], [.02, 1.62], [.22, 1.53],
+    [.25, 1.42], [.04, 1.47], [-.12, 1.45]
+  ], .055, darkPaper, 0x22282a, .72);
+  crownBack.position.z = -.055;
+  crownBack.rotation.y = .09;
+  hair.add(crownBack);
+
+  const crownFront = panel([
+    [-.21, 1.48], [-.02, 1.64], [.22, 1.54], [.08, 1.47], [-.1, 1.46]
+  ], .045, darkPaper, 0x202629, .78);
+  crownFront.position.z = .115;
+  crownFront.rotation.y = -.08 + variant * .012;
+  hair.add(crownFront);
 
   const ribbons = [
     [[-.23, 1.47], [-.36, 1.27], [-.34, .96], [-.24, 1.08], [-.18, 1.37]],
