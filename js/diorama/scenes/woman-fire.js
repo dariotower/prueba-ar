@@ -119,6 +119,46 @@ function createStandingWoman({ paper, printedPaper, winePaper, darkPaper, shadow
   const woman = new THREE.Group();
   const printOnLeft = variant % 2 === 0;
 
+  // Núcleo facetado: mantiene cada silueta legible cuando se mira de costado.
+  const skirtCore = mesh(
+    new THREE.ConeGeometry(.31, .72, 5, 1, false),
+    variant % 2 ? paper : printedPaper,
+    0x80695c,
+    .38
+  );
+  skirtCore.position.y = .4;
+  skirtCore.rotation.y = variant * .37;
+  woman.add(skirtCore);
+
+  const torsoCore = mesh(
+    new THREE.CylinderGeometry(.15, .22, .43, 5, 1, false),
+    paper,
+    0x755e54,
+    .42
+  );
+  torsoCore.position.y = .91;
+  torsoCore.rotation.y = .25 + variant * .21;
+  woman.add(torsoCore);
+
+  const headCore = mesh(new THREE.OctahedronGeometry(.155, 0), paper, 0x6d554c, .48);
+  headCore.scale.set(.84, 1.08, .88);
+  headCore.position.set(0, 1.37, 0);
+  woman.add(headCore);
+
+  const leftArmCore = foldedLimb(
+    new THREE.Vector3(-.18, 1.02, 0),
+    new THREE.Vector3(-.53, .76, 0),
+    paper
+  );
+  woman.add(leftArmCore);
+
+  const rightArmCore = foldedLimb(
+    new THREE.Vector3(.18, 1.02, 0),
+    new THREE.Vector3(.53, .76, 0),
+    paper
+  );
+  woman.add(rightArmCore);
+
   const hairBack = panel([
     [-.31, .91], [-.36, 1.27], [-.26, 1.5], [-.03, 1.58],
     [.2, 1.5], [.3, 1.28], [.19, 1.03], [.05, .91]
@@ -244,6 +284,22 @@ function panel(points, depth, material, edgeColor, edgeOpacity) {
   geometry.translate(0, 0, -depth * .5);
   geometry.computeVertexNormals();
   return mesh(geometry, material, edgeColor, edgeOpacity);
+}
+
+function foldedLimb(start, end, material) {
+  const direction = end.clone().sub(start);
+  const limb = mesh(
+    new THREE.CylinderGeometry(.042, .058, direction.length(), 4, 1, false),
+    material,
+    0x755e54,
+    .48
+  );
+  limb.position.copy(start).add(end).multiplyScalar(.5);
+  limb.quaternion.setFromUnitVectors(
+    new THREE.Vector3(0, 1, 0),
+    direction.clone().normalize()
+  );
+  return limb;
 }
 
 function createFire({ paper, darkPaper, flamePaper, profile }) {
