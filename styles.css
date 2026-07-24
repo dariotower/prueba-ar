@@ -488,6 +488,35 @@ h1 {
   cursor: pointer;
 }
 
+.sound {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: max(82px, calc(env(safe-area-inset-bottom) + 70px));
+  min-height: 42px;
+  transform: translateX(-50%);
+  padding: 10px 16px;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(87,22,47,.94), rgba(255,86,47,.94));
+  box-shadow: 0 12px 32px rgba(0,0,0,.34);
+  font-size: 12px;
+  font-weight: 780;
+  pointer-events: auto;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 180ms ease, visibility 180ms ease, transform 150ms ease;
+}
+
+.app.has-target:not(.has-sound) .sound {
+  opacity: 1;
+  visibility: visible;
+}
+
+.sound:active { transform: translateX(-50%) scale(.98); }
+
 .debug {
   position: absolute;
   z-index: 8;
