@@ -1,5 +1,5 @@
 const sceneLoaders = {
-  'woman-fire': () => import('./scenes/woman-fire.js?v=3')
+  'woman-fire': () => import('./scenes/woman-fire.js?v=4')
 };
 
 let activeScene = null;
