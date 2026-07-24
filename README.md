@@ -1,6 +1,6 @@
 # WebAR — La cumbre de las brujas
 
-Prototipo web para reconocer la portada del libro sin QR y superponer una experiencia aumentada con una interfaz dramática, pensada para luego reproducir un video vertical trackeado.
+Prototipo web para reconocer la portada del libro sin QR y reproducir el video vertical de YouTube trackeado sobre la tapa.
 
 ## Qué incluye hoy
 
@@ -8,7 +8,10 @@ Prototipo web para reconocer la portada del libro sin QR y superponer una experi
 - modo demo sin cámara;
 - interfaz visual inspirada en la portada;
 - capa aumentada que sigue el movimiento y la perspectiva del libro;
-- contenedor preparado para incrustar un video vertical de YouTube no listado.
+- video de YouTube `oMnK9Viihg8` ya integrado;
+- reproducción silenciada al reconocer la portada;
+- botón **Activar sonido**;
+- el reproductor permanece cargado durante pérdidas breves del seguimiento.
 
 ## Cómo probarlo localmente
 
@@ -32,12 +35,12 @@ Subí el contenido de esta carpeta a la raíz del repositorio y activá:
 
 Después probalo desde el celular en HTTPS.
 
-## Cuando tengas el link de YouTube
+## Cambiar el video de YouTube
 
 En `app.js`, buscá:
 
 ```js
-youtubeVideoId: ''
+youtubeVideoId: 'oMnK9Viihg8'
 ```
 
 Y reemplazalo por el ID del video no listado. Ejemplo, si tu URL es:
@@ -52,7 +55,7 @@ Entonces el ID es:
 ABC123XYZ
 ```
 
-El sistema montará el iframe cuando detecte la portada.
+El reproductor se prepara al iniciar la experiencia y comienza a reproducirse cuando detecta la portada. Esto evita que los pequeños saltos normales del seguimiento cancelen continuamente la carga de YouTube.
 
 ## Nota práctica
 
