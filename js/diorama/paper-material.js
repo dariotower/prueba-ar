@@ -5,7 +5,8 @@ export function createPaperMaterial({
   ink = '#4a2b2e',
   accent = null,
   snippets = ['LA CUMBRE DE LAS BRUJAS', 'fuego · memoria · mujeres'],
-  seed = 17
+  seed = 17,
+  textOpacity = .68
 } = {}) {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
@@ -29,17 +30,19 @@ export function createPaperMaterial({
     context.stroke();
   }
 
-  context.globalAlpha = .68;
-  context.fillStyle = ink;
-  context.font = '18px Georgia, serif';
-  context.textBaseline = 'top';
-  for (let line = 0; line < 16; line += 1) {
-    const phrase = snippets[line % snippets.length];
-    context.save();
-    context.translate(-18 + (line % 3) * 11, 18 + line * 32);
-    context.rotate((random() - .5) * .035);
-    context.fillText(`${phrase}  ·  ${phrase}`, 0, 0);
-    context.restore();
+  if (textOpacity > 0 && snippets.length) {
+    context.globalAlpha = textOpacity;
+    context.fillStyle = ink;
+    context.font = '18px Georgia, serif';
+    context.textBaseline = 'top';
+    for (let line = 0; line < 16; line += 1) {
+      const phrase = snippets[line % snippets.length];
+      context.save();
+      context.translate(-18 + (line % 3) * 11, 18 + line * 32);
+      context.rotate((random() - .5) * .035);
+      context.fillText(`${phrase}  ·  ${phrase}`, 0, 0);
+      context.restore();
+    }
   }
 
   if (accent) {
