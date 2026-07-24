@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { detectDeviceProfile } from './device-profile.js';
-import { getActiveScene, loadScene, unloadScene } from './scene-registry.js';
+import { getActiveScene, loadScene, unloadScene } from './scene-registry.js?v=4';
 
 const stage = document.getElementById('stage');
 const laboratory = document.getElementById('laboratory');
