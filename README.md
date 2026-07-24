@@ -57,6 +57,21 @@ ABC123XYZ
 
 El reproductor se prepara al iniciar la experiencia y comienza a reproducirse cuando detecta la portada. Esto evita que los pequeños saltos normales del seguimiento cancelen continuamente la carga de YouTube.
 
+## Laboratorio de dioramas interiores
+
+La ruta `diorama.html` incorpora la primera arquitectura para ilustraciones interiores:
+
+- módulo de escenas Three.js cargado bajo demanda;
+- mujer origami y fogata de papel procedurales;
+- aparición tipo libro pop-up;
+- humo, fuego y brasas animados;
+- exploración orbital táctil;
+- perfiles 3D completo, 3D liviano y fallback 2.5D;
+- adaptador MindAR preparado para `assets/targets/interiores.mind`;
+- liberación de geometrías, materiales y texturas al cerrar una escena.
+
+La lista de materiales pendientes está en `docs/asset-checklist.md`.
+
 ## Nota práctica
 
 Para una versión final más controlada, seguramente convendrá comparar:
