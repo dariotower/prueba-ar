@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { detectDeviceProfile } from './device-profile.js';
-import { getActiveScene, loadScene, unloadScene } from './scene-registry.js?v=4';
+import { getActiveScene, loadScene, unloadScene } from './scene-registry.js?v=5';
 
 const stage = document.getElementById('stage');
 const laboratory = document.getElementById('laboratory');
@@ -61,10 +61,10 @@ async function startDemo() {
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x12080b, .105);
   const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, .05, 30);
-  camera.position.set(3.25, 2.45, 4.35);
+  camera.position.set(3.25, 3.05, 4.55);
 
   const orbit = new OrbitControls(camera, renderer.domElement);
-  orbit.target.set(0, .55, 0);
+  orbit.target.set(0, .48, 0);
   orbit.enableDamping = true;
   orbit.dampingFactor = .055;
   orbit.minDistance = 2.4;
