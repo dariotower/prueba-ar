@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { addPaperEdges, createPaperMaterial } from '../paper-material.js';
+import { addPaperEdges, createPaperMaterial } from '../paper-material.js?v=2';
 
 const TEXT = [
   'LA CUMBRE DE LAS BRUJAS',
@@ -34,7 +34,7 @@ export async function createScene({ parent, profile }) {
 
   const fire = createFire({ paper, darkPaper, flamePaper, profile });
   fire.group.position.set(0, .03, 0);
-  fire.group.scale.setScalar(.82);
+  fire.group.scale.setScalar(.9);
   root.add(fire.group);
 
   const popupFold = mesh(new THREE.BoxGeometry(1.95, .018, .035), winePaper, 0x4a2228, .45);
@@ -92,7 +92,7 @@ function createWomenCircle({ paper, printedPaper, winePaper, darkPaper, profile 
     });
     figure.position.set(Math.cos(angle) * radiusX, .035, Math.sin(angle) * radiusZ);
     figure.rotation.y = -Math.PI * .5 - angle;
-    figure.scale.setScalar(.67);
+    figure.scale.setScalar(.61);
     figure.userData.baseY = figure.position.y;
     figure.userData.phase = index * .62;
     figures.push(figure);
@@ -147,14 +147,14 @@ function createStandingWoman({ paper, printedPaper, winePaper, darkPaper, shadow
 
   const leftArmCore = foldedLimb(
     new THREE.Vector3(-.18, 1.02, 0),
-    new THREE.Vector3(-.53, .76, 0),
+    new THREE.Vector3(-.65, .76, 0),
     paper
   );
   woman.add(leftArmCore);
 
   const rightArmCore = foldedLimb(
     new THREE.Vector3(.18, 1.02, 0),
-    new THREE.Vector3(.53, .76, 0),
+    new THREE.Vector3(.65, .76, 0),
     paper
   );
   woman.add(rightArmCore);
@@ -227,25 +227,25 @@ function createStandingWoman({ paper, printedPaper, winePaper, darkPaper, shadow
   woman.add(hairFold);
 
   const leftArm = panel([
-    [-.19, 1.07], [-.28, .99], [-.5, .83], [-.55, .77],
-    [-.48, .72], [-.21, .86], [-.11, 1.02]
+    [-.19, 1.07], [-.28, .99], [-.58, .83], [-.66, .77],
+    [-.59, .72], [-.21, .86], [-.11, 1.02]
   ], .064, paper, 0x755e54, .56);
   leftArm.position.z = .035;
   woman.add(leftArm);
 
   const rightArm = panel([
-    [.18, 1.07], [.28, .99], [.5, .83], [.55, .77],
-    [.48, .72], [.21, .86], [.1, 1.02]
+    [.18, 1.07], [.28, .99], [.58, .83], [.66, .77],
+    [.59, .72], [.21, .86], [.1, 1.02]
   ], .064, paper, 0x755e54, .56);
   rightArm.position.z = .03;
   woman.add(rightArm);
 
   const leftHand = mesh(new THREE.OctahedronGeometry(.055, 0), paper, 0x755e54, .46);
-  leftHand.position.set(-.54, .76, .035);
+  leftHand.position.set(-.65, .76, .035);
   woman.add(leftHand);
 
   const rightHand = mesh(new THREE.OctahedronGeometry(.055, 0), paper, 0x755e54, .46);
-  rightHand.position.set(.54, .76, .03);
+  rightHand.position.set(.65, .76, .03);
   woman.add(rightHand);
 
   const waistFold = panel([
