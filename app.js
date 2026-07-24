@@ -38,6 +38,7 @@
   const status = document.getElementById('status');
   const statusText = document.getElementById('statusText');
   const instruction = document.getElementById('instruction');
+  const soundButton = document.getElementById('soundButton');
   const helperText = document.getElementById('helperText');
   const debugPanel = document.getElementById('debugPanel');
   const debugText = document.getElementById('debugText');
@@ -76,6 +77,10 @@
   let lastDetection = null;
   let detectionStartedAt = 0;
   let youtubeMounted = false;
+  let youtubeReady = false;
+  let youtubeShouldPlay = false;
+  let youtubeMuted = EXPERIENCE.autoplayMuted;
+  let youtubePlayer = null;
   let layerRect = { left: 0, top: 0, width: 0, height: 0 };
 
   class Match {
@@ -260,7 +265,8 @@
     lastDetection = null;
     detectionStartedAt = 0;
     app.classList.add('is-running');
-    app.classList.remove('has-target');
+    app.classList.remove('has-target', 'has-sound');
+    soundButton.setAttribute('aria-pressed', 'false');
     hud.hidden = false;
     debugPanel.hidden = true;
     syncLayerBounds();
@@ -269,6 +275,7 @@
       ? 'Buscá la portada completa dentro del encuadre'
       : 'Modo de demostración: reconocimiento sobre una escena simulada';
     setStatus('Buscando portada…', 'searching');
+    mountYouTubePlayer();
     rafId = requestAnimationFrame(tick);
   }
 
@@ -276,11 +283,12 @@
     cancelAnimationFrame(rafId);
     rafId = 0;
     runningMode = null;
-    app.classList.remove('is-running', 'has-target');
+    app.classList.remove('is-running', 'has-target', 'has-sound');
     hud.hidden = true;
     lastDetection = null;
     smoothedCorners = null;
     detectionStartedAt = 0;
+    setYouTubePlayback(false);
     hideTrackedPlane(true);
 
     if (stream) {
@@ -413,6 +421,7 @@
           instruction.textContent = runningMode === 'camera'
             ? 'Buscá la portada completa dentro del encuadre'
             : 'Modo de demostración: reconocimiento sobre una escena simulada';
+          setYouTubePlayback(false);
           hideTrackedPlane();
         }
       }
@@ -726,7 +735,7 @@
       arLayer.hidden = false;
       arPlane.classList.add('is-visible');
       planeMeta.textContent = `Seguimiento activo · ${inliers} coincidencias útiles`;
-      if (EXPERIENCE.youtubeVideoId) mountYouTubePlayer();
+      setYouTubePlayback(true);
     }
   }
 
@@ -734,7 +743,7 @@
     arPlane.classList.remove('is-visible');
     arLayer.hidden = true;
     planeMeta.textContent = 'Seguimiento activo de portada';
-    if (forceUnmount || EXPERIENCE.youtubeVideoId) unmountYouTubePlayer();
+    if (forceUnmount) unmountYouTubePlayer();
   }
 
   function syncLayerBounds() {
@@ -749,25 +758,72 @@
   function mountYouTubePlayer() {
     if (youtubeMounted || !EXPERIENCE.youtubeVideoId) return;
     youtubeMounted = true;
-    planeState.textContent = 'Video en reproducción';
+    youtubeReady = false;
+    planeState.textContent = 'Cargando video';
     videoPlaceholder.hidden = true;
-    const iframe = document.createElement('iframe');
-    iframe.id = 'youtubePlayer';
-    iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
-    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-    iframe.title = `${EXPERIENCE.title} — video vertical`;
-    const mute = EXPERIENCE.autoplayMuted ? 1 : 0;
-    iframe.src = `https://www.youtube.com/embed/${encodeURIComponent(EXPERIENCE.youtubeVideoId)}?autoplay=1&mute=${mute}&playsinline=1&controls=0&rel=0&modestbranding=1&loop=1&playlist=${encodeURIComponent(EXPERIENCE.youtubeVideoId)}`;
-    videoStage.appendChild(iframe);
+    const playerHost = document.createElement('div');
+    playerHost.id = 'youtubePlayer';
+    videoStage.appendChild(playerHost);
+    createYouTubePlayer();
+  }
+
+  function createYouTubePlayer() {
+    if (!youtubeMounted || youtubePlayer || !window.YT?.Player) return;
+    youtubePlayer = new window.YT.Player('youtubePlayer', {
+      videoId: EXPERIENCE.youtubeVideoId,
+      playerVars: {
+        autoplay: 0,
+        controls: 0,
+        playsinline: 1,
+        rel: 0,
+        loop: 1,
+        playlist: EXPERIENCE.youtubeVideoId,
+        origin: window.location.origin
+      },
+      events: {
+        onReady: (event) => {
+          youtubeReady = true;
+          if (youtubeMuted) event.target.mute();
+          setYouTubePlayback(youtubeShouldPlay);
+        },
+        onError: () => {
+          planeState.textContent = 'Video no disponible';
+        }
+      }
+    });
   }
 
   function unmountYouTubePlayer() {
-    const iframe = document.getElementById('youtubePlayer');
-    if (iframe) iframe.remove();
+    if (youtubePlayer?.destroy) youtubePlayer.destroy();
+    else document.getElementById('youtubePlayer')?.remove();
+    youtubePlayer = null;
     youtubeMounted = false;
+    youtubeReady = false;
+    youtubeShouldPlay = false;
     planeState.textContent = EXPERIENCE.youtubeVideoId ? 'Video listo' : 'Esperando video';
     videoPlaceholder.hidden = false;
   }
+
+  function setYouTubePlayback(shouldPlay) {
+    youtubeShouldPlay = shouldPlay;
+    if (!youtubeMounted || !youtubeReady || !youtubePlayer) return;
+    if (shouldPlay) youtubePlayer.playVideo();
+    else youtubePlayer.pauseVideo();
+    planeState.textContent = shouldPlay
+      ? (youtubeMuted ? 'Video en reproducción' : 'Video con sonido')
+      : 'Video listo';
+  }
+
+  function activateSound() {
+    youtubeMuted = false;
+    youtubePlayer?.unMute();
+    youtubePlayer?.setVolume(100);
+    app.classList.add('has-sound');
+    soundButton.setAttribute('aria-pressed', 'true');
+    planeState.textContent = 'Video con sonido';
+  }
+
+  window.onYouTubeIframeAPIReady = createYouTubePlayer;
 
   function computeProjectiveMatrix(source, destination) {
     const h = solveHomography(source, destination);
@@ -874,6 +930,7 @@
 
   startCameraButton.addEventListener('click', startCamera);
   startDemoButton.addEventListener('click', startDemo);
+  soundButton.addEventListener('click', activateSound);
   stopButton.addEventListener('click', stopRunning);
   window.addEventListener('resize', () => {
     configureCanvas();
