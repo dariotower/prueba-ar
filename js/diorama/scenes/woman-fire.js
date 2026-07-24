@@ -13,9 +13,10 @@ export async function createScene({ parent, profile }) {
   root.name = 'woman-fire-diorama';
   parent.add(root);
 
-  const paper = createPaperMaterial({ snippets: TEXT, seed: 21 });
-  const winePaper = createPaperMaterial({ color: '#8c5360', ink: '#2d1119', accent: '#7b1731', snippets: TEXT, seed: 32 });
-  const darkPaper = createPaperMaterial({ color: '#50383a', ink: '#d8c0a2', snippets: TEXT, seed: 44 });
+  const paper = createPaperMaterial({ color: '#eee8dc', ink: '#765e54', snippets: TEXT, seed: 21, textOpacity: 0 });
+  const printedPaper = createPaperMaterial({ color: '#e7dece', ink: '#6b5149', snippets: TEXT, seed: 26, textOpacity: .5 });
+  const winePaper = createPaperMaterial({ color: '#8c5360', ink: '#2d1119', accent: '#7b1731', snippets: TEXT, seed: 32, textOpacity: .24 });
+  const darkPaper = createPaperMaterial({ color: '#3e4548', ink: '#d8c0a2', snippets: TEXT, seed: 44, textOpacity: 0 });
   const flamePaper = createPaperMaterial({ color: '#ff8a3d', ink: '#7f161d', accent: '#ff3d17', snippets: ['fuego', 'brasas', 'la noche'], seed: 53 });
   const pagePaper = createPaperMaterial({ color: '#cbb89d', ink: '#5b3a39', snippets: TEXT, seed: 68 });
 
@@ -28,12 +29,12 @@ export async function createScene({ parent, profile }) {
   spine.position.set(-1.29, .005, 0);
   root.add(spine);
 
-  const woman = createWoman({ paper, winePaper, darkPaper, shadows: profile.shadows });
-  woman.position.set(-.58, .02, .05);
-  root.add(woman);
+  const women = createWomenCircle({ paper, printedPaper, winePaper, darkPaper, profile });
+  root.add(women);
 
   const fire = createFire({ paper, darkPaper, flamePaper, profile });
-  fire.group.position.set(.58, .03, .06);
+  fire.group.position.set(0, .03, 0);
+  fire.group.scale.setScalar(.82);
   root.add(fire.group);
 
   const popupFold = mesh(new THREE.BoxGeometry(1.95, .018, .035), winePaper, 0x4a2228, .45);
@@ -56,8 +57,7 @@ export async function createScene({ parent, profile }) {
     root.scale.y = Math.max(.001, reveal);
     root.rotation.x = THREE.MathUtils.lerp(-Math.PI * .48, 0, easeInOut(Math.min(1, elapsed)));
 
-    woman.rotation.z = Math.sin(time * .00072) * .012;
-    woman.children[3].rotation.z = -.5 + Math.sin(time * .0011) * .08;
+    women.userData.update?.(time);
     fire.update(time);
   };
 
@@ -73,46 +73,154 @@ export async function createScene({ parent, profile }) {
   return { root, update, replay, dispose };
 }
 
-function createWoman({ paper, winePaper, darkPaper, shadows }) {
+function createWomenCircle({ paper, printedPaper, winePaper, darkPaper, profile }) {
+  const circle = new THREE.Group();
+  const figures = [];
+  const count = 6;
+  const radiusX = .87;
+  const radiusZ = .57;
+
+  for (let index = 0; index < count; index += 1) {
+    const angle = -Math.PI * .5 + index * Math.PI * 2 / count;
+    const figure = createStandingWoman({
+      paper,
+      printedPaper,
+      winePaper,
+      darkPaper,
+      shadows: profile.shadows,
+      variant: index
+    });
+    figure.position.set(Math.cos(angle) * radiusX, .035, Math.sin(angle) * radiusZ);
+    figure.rotation.y = -Math.PI * .5 - angle;
+    figure.scale.setScalar(.67);
+    figure.userData.baseY = figure.position.y;
+    figure.userData.phase = index * .62;
+    figures.push(figure);
+    circle.add(figure);
+  }
+
+  circle.userData.update = (time) => {
+    // Doce poses discretas forman un ciclo de tres segundos: stop-motion de papel.
+    const pose = Math.floor(time / 250) % 12;
+    const cycle = pose / 12 * Math.PI * 2;
+    figures.forEach((figure, index) => {
+      const sway = Math.sin(cycle + figure.userData.phase);
+      const breath = Math.sin(cycle * 2 + figure.userData.phase * .45);
+      figure.rotation.z = sway * .022;
+      figure.position.y = figure.userData.baseY + Math.max(0, breath) * .008;
+      figure.userData.pose?.(sway, breath, index);
+    });
+  };
+
+  return circle;
+}
+
+function createStandingWoman({ paper, printedPaper, winePaper, darkPaper, shadows, variant }) {
   const woman = new THREE.Group();
+  const printOnLeft = variant % 2 === 0;
 
-  const skirt = mesh(new THREE.ConeGeometry(.34, .68, 4, 1, false), winePaper, 0x3b171e, .72);
-  skirt.position.y = .38;
-  skirt.rotation.y = Math.PI * .25;
-  woman.add(skirt);
+  const hairBack = panel([
+    [-.31, .91], [-.36, 1.27], [-.26, 1.5], [-.03, 1.58],
+    [.2, 1.5], [.3, 1.28], [.19, 1.03], [.05, .91]
+  ], .075, darkPaper, 0x202629, .78);
+  hairBack.position.z = -.07;
+  woman.add(hairBack);
 
-  const torso = mesh(new THREE.OctahedronGeometry(.245, 0), paper, 0x513332, .6);
-  torso.scale.set(.72, 1.15, .62);
-  torso.position.y = .92;
+  const leftSkirt = panel([
+    [-.04, .73], [-.38, .05], [-.06, .08], [.02, .69]
+  ], .052, printOnLeft ? printedPaper : paper, 0x80695c, .5);
+  leftSkirt.position.z = -.015;
+  leftSkirt.rotation.y = .12;
+  woman.add(leftSkirt);
+
+  const centerSkirt = panel([
+    [-.04, .73], [-.06, .08], [.16, .04], [.09, .7]
+  ], .06, paper, 0x80695c, .54);
+  centerSkirt.position.z = .04;
+  centerSkirt.rotation.y = -.12;
+  woman.add(centerSkirt);
+
+  const rightSkirt = panel([
+    [.09, .7], [.16, .04], [.4, .09], [.18, .71]
+  ], .052, printOnLeft ? paper : printedPaper, 0x80695c, .5);
+  rightSkirt.position.z = -.01;
+  rightSkirt.rotation.y = .1;
+  woman.add(rightSkirt);
+
+  const torso = panel([
+    [-.2, .7], [-.24, 1.04], [-.12, 1.19], [.12, 1.18],
+    [.24, 1.03], [.18, .71], [0, .62]
+  ], .095, paper, 0x755e54, .58);
+  torso.position.z = .025;
   woman.add(torso);
 
-  const head = mesh(new THREE.OctahedronGeometry(.16, 0), paper, 0x513332, .58);
-  head.scale.set(.84, 1.08, .8);
-  head.position.y = 1.27;
-  head.rotation.y = -.22;
-  woman.add(head);
+  const collar = panel([
+    [-.17, 1.13], [0, .91], [.17, 1.13], [.08, 1.21], [0, 1.08], [-.08, 1.21]
+  ], .1, variant === 3 ? winePaper : paper, 0x694c46, .68);
+  collar.position.z = .09;
+  woman.add(collar);
 
-  const leftArm = mesh(new THREE.ConeGeometry(.075, .53, 3), paper, 0x513332, .54);
-  leftArm.position.set(-.29, .87, .03);
-  leftArm.rotation.z = -.5;
-  leftArm.rotation.x = .08;
+  const neck = panel([
+    [-.07, 1.15], [.07, 1.15], [.09, 1.31], [-.08, 1.31]
+  ], .07, paper, 0x755e54, .5);
+  woman.add(neck);
+
+  const face = panel([
+    [-.14, 1.3], [-.12, 1.47], [-.02, 1.55], [.13, 1.5],
+    [.16, 1.43], [.22, 1.39], [.16, 1.35], [.17, 1.29],
+    [.09, 1.23], [-.04, 1.23]
+  ], .085, paper, 0x6d554c, .62);
+  face.position.z = .035;
+  woman.add(face);
+
+  const hairCrown = panel([
+    [-.27, 1.43], [-.16, 1.59], [.08, 1.63], [.25, 1.51],
+    [.1, 1.45], [-.08, 1.47]
+  ], .1, darkPaper, 0x171c1e, .84);
+  hairCrown.position.z = .08;
+  woman.add(hairCrown);
+
+  const hairFold = panel([
+    [-.23, 1.43], [.05, 1.57], [.2, 1.49], [-.08, 1.42]
+  ], .11, darkPaper, 0x171c1e, .82);
+  hairFold.position.z = .15;
+  woman.add(hairFold);
+
+  const leftArm = panel([
+    [-.19, 1.07], [-.28, .99], [-.5, .83], [-.55, .77],
+    [-.48, .72], [-.21, .86], [-.11, 1.02]
+  ], .064, paper, 0x755e54, .56);
+  leftArm.position.z = .035;
   woman.add(leftArm);
 
-  const rightArm = mesh(new THREE.ConeGeometry(.075, .52, 3), paper, 0x513332, .54);
-  rightArm.position.set(.29, .9, .03);
-  rightArm.rotation.z = .62;
+  const rightArm = panel([
+    [.18, 1.07], [.28, .99], [.5, .83], [.55, .77],
+    [.48, .72], [.21, .86], [.1, 1.02]
+  ], .064, paper, 0x755e54, .56);
+  rightArm.position.z = .03;
   woman.add(rightArm);
 
-  const hair = mesh(new THREE.ConeGeometry(.19, .39, 5, 1, true), darkPaper, 0x2d1719, .7);
-  hair.position.set(-.02, 1.29, -.065);
-  hair.rotation.z = .18;
-  hair.rotation.x = -.22;
-  woman.add(hair);
+  const leftHand = mesh(new THREE.OctahedronGeometry(.055, 0), paper, 0x755e54, .46);
+  leftHand.position.set(-.54, .76, .035);
+  woman.add(leftHand);
 
-  const shoulderFold = mesh(new THREE.ConeGeometry(.31, .24, 4, 1, true), darkPaper, 0x2d1719, .58);
-  shoulderFold.position.y = 1.03;
-  shoulderFold.rotation.y = Math.PI * .25;
-  woman.add(shoulderFold);
+  const rightHand = mesh(new THREE.OctahedronGeometry(.055, 0), paper, 0x755e54, .46);
+  rightHand.position.set(.54, .76, .03);
+  woman.add(rightHand);
+
+  const waistFold = panel([
+    [-.21, .74], [0, .62], [.22, .74], [.08, .8], [0, .73], [-.08, .8]
+  ], .082, variant % 3 === 0 ? winePaper : paper, 0x664a43, .54);
+  waistFold.position.z = .1;
+  woman.add(waistFold);
+
+  woman.userData.pose = (sway, breath) => {
+    hairFold.rotation.z = sway * .018;
+    hairCrown.rotation.z = sway * -.009;
+    leftArm.rotation.z = breath * .006;
+    rightArm.rotation.z = breath * -.006;
+    centerSkirt.rotation.y = -.12 + sway * .025;
+  };
 
   woman.traverse((object) => {
     if (!object.isMesh) return;
@@ -120,6 +228,22 @@ function createWoman({ paper, winePaper, darkPaper, shadows }) {
     object.receiveShadow = shadows;
   });
   return woman;
+}
+
+function panel(points, depth, material, edgeColor, edgeOpacity) {
+  const shape = new THREE.Shape();
+  shape.moveTo(points[0][0], points[0][1]);
+  points.slice(1).forEach(([x, y]) => shape.lineTo(x, y));
+  shape.closePath();
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth,
+    bevelEnabled: false,
+    curveSegments: 1,
+    steps: 1
+  });
+  geometry.translate(0, 0, -depth * .5);
+  geometry.computeVertexNormals();
+  return mesh(geometry, material, edgeColor, edgeOpacity);
 }
 
 function createFire({ paper, darkPaper, flamePaper, profile }) {
