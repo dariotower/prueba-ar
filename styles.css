@@ -419,6 +419,30 @@ h1 {
   line-height: 1.5;
 }
 
+.laboratory-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  margin-top: 12px;
+  padding: 8px 13px;
+  border: 1px solid rgba(255,202,183,.18);
+  border-radius: 999px;
+  color: #ffcab7;
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: .04em;
+  text-decoration: none;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.laboratory-link:hover,
+.laboratory-link:focus-visible {
+  color: #fff;
+  border-color: rgba(255,202,183,.38);
+  background: rgba(255,255,255,.05);
+}
+
 .hud {
   position: absolute;
   z-index: 7;
