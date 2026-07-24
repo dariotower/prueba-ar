@@ -6,9 +6,10 @@
   <meta name="theme-color" content="#0b0607" />
   <meta name="description" content="Experiencia WebAR para La cumbre de las brujas: reconocimiento de portada y reproducción de video vertical sin QR." />
   <title>La cumbre de las brujas · WebAR</title>
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./styles.css?v=2" />
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jsfeat/0.0.8/jsfeat-min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/jsfeat@0.0.8/build/jsfeat-min.js'"></script>
-  <script defer src="./app.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script defer src="./app.js?v=2"></script>
 </head>
 <body>
   <main class="app" id="app">
@@ -22,7 +23,7 @@
           <div class="video-frame">
             <div class="video-frame__header">
               <span class="video-frame__tag">PORTAL VISUAL</span>
-              <span class="video-frame__state" id="planeState">Esperando video</span>
+              <span class="video-frame__state" id="planeState">Video listo</span>
             </div>
             <div class="video-stage" id="videoStage">
               <div class="video-placeholder" id="videoPlaceholder">
@@ -30,9 +31,9 @@
                 <div class="video-placeholder__veil"></div>
                 <div class="video-placeholder__copy">
                   <p class="video-placeholder__eyebrow">LA CUMBRE DE LAS BRUJAS</p>
-                  <h2>Video vertical listo para enlazar</h2>
+                  <h2>Preparando el portal visual</h2>
                   <p>
-                    En cuanto me pases el link de YouTube no listado, esta ventana se convierte en el reproductor trackeado sobre la portada.
+                    Al reconocer la portada, el video aparece sobre el libro y acompaña su movimiento.
                   </p>
                 </div>
               </div>
@@ -68,7 +69,7 @@
         <p class="eyebrow">PRUEBA DE EXPERIENCIA AUMENTADA</p>
         <h1>Apuntá la cámara a la portada</h1>
         <p class="intro">
-          La web reconoce el libro sin QR y superpone una capa dramática preparada para reproducir un video vertical siguiendo el movimiento de la tapa.
+          La web reconoce el libro sin QR y reproduce un video vertical siguiendo el movimiento de la tapa.
         </p>
 
         <div class="actions">
@@ -81,7 +82,7 @@
         </div>
 
         <p class="helper" id="helperText">
-          Para la prueba, mostrá la portada desde otra pantalla o imprimila. Luego conectamos el video no listado de YouTube.
+          Para la prueba, mostrá la portada completa desde otra pantalla o imprimila con buen contraste.
         </p>
       </div>
     </section>
@@ -91,6 +92,7 @@
         <i></i><i></i><i></i><i></i>
       </div>
       <p class="instruction" id="instruction">Buscá la portada completa dentro del encuadre</p>
+      <button class="sound" id="soundButton" type="button" aria-pressed="false">Activar sonido</button>
       <button class="close" id="stopButton" type="button" aria-label="Cerrar cámara">×</button>
     </section>
 
