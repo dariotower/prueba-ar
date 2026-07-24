@@ -16,7 +16,7 @@ export async function createScene({ parent, profile }) {
   const paper = createPaperMaterial({ color: '#eee8dc', ink: '#765e54', snippets: TEXT, seed: 21, textOpacity: 0 });
   const printedPaper = createPaperMaterial({ color: '#e7dece', ink: '#6b5149', snippets: TEXT, seed: 26, textOpacity: .5 });
   const winePaper = createPaperMaterial({ color: '#8c5360', ink: '#2d1119', accent: '#7b1731', snippets: TEXT, seed: 32, textOpacity: .24 });
-  const darkPaper = createPaperMaterial({ color: '#3e4548', ink: '#d8c0a2', snippets: TEXT, seed: 44, textOpacity: 0 });
+  const darkPaper = createPaperMaterial({ color: '#555d60', ink: '#d8c0a2', snippets: TEXT, seed: 44, textOpacity: 0 });
   const flamePaper = createPaperMaterial({ color: '#ff8a3d', ink: '#7f161d', accent: '#ff3d17', snippets: ['fuego', 'brasas', 'la noche'], seed: 53 });
   const pagePaper = createPaperMaterial({ color: '#cbb89d', ink: '#5b3a39', snippets: TEXT, seed: 68 });
 
@@ -117,149 +117,103 @@ function createWomenCircle({ paper, printedPaper, winePaper, darkPaper, profile 
 
 function createStandingWoman({ paper, printedPaper, winePaper, darkPaper, shadows, variant }) {
   const woman = new THREE.Group();
-  const printOnLeft = variant % 2 === 0;
+  const skirt = createPleatedSkirt({ paper, printedPaper, variant });
+  skirt.rotation.y = variant * .29;
+  woman.add(skirt);
 
-  // Núcleo facetado: mantiene cada silueta legible cuando se mira de costado.
-  const skirtCore = mesh(
-    new THREE.ConeGeometry(.31, .72, 5, 1, false),
-    variant % 2 ? paper : printedPaper,
-    0x80695c,
-    .38
+  const bodice = mesh(
+    new THREE.CylinderGeometry(.135, .215, .43, 8, 1, false),
+    paper,
+    0x786158,
+    .4
   );
-  skirtCore.position.y = .4;
-  skirtCore.rotation.y = variant * .37;
-  woman.add(skirtCore);
+  bodice.position.y = .91;
+  bodice.rotation.y = Math.PI * .125;
+  woman.add(bodice);
 
-  const torsoCore = mesh(
-    new THREE.CylinderGeometry(.15, .22, .43, 5, 1, false),
+  const leftLapel = panel([
+    [-.18, 1.1], [-.03, .89], [0, .73], [-.13, .9]
+  ], .028, variant === 2 ? printedPaper : paper, 0x72574e, .58);
+  leftLapel.position.z = .205;
+  leftLapel.rotation.y = -.12;
+  woman.add(leftLapel);
+
+  const rightLapel = panel([
+    [.18, 1.1], [.03, .89], [0, .73], [.13, .9]
+  ], .028, variant === 4 ? printedPaper : paper, 0x72574e, .58);
+  rightLapel.position.z = .205;
+  rightLapel.rotation.y = .12;
+  woman.add(rightLapel);
+
+  const waistFold = panel([
+    [-.22, .76], [0, .66], [.22, .76], [.08, .82], [0, .75], [-.08, .82]
+  ], .046, variant % 3 === 0 ? winePaper : paper, 0x664a43, .54);
+  waistFold.position.z = .2;
+  woman.add(waistFold);
+
+  const neck = mesh(
+    new THREE.CylinderGeometry(.065, .075, .16, 6),
     paper,
     0x755e54,
     .42
   );
-  torsoCore.position.y = .91;
-  torsoCore.rotation.y = .25 + variant * .21;
-  woman.add(torsoCore);
-
-  const headCore = mesh(new THREE.OctahedronGeometry(.155, 0), paper, 0x6d554c, .48);
-  headCore.scale.set(.84, 1.08, .88);
-  headCore.position.set(0, 1.37, 0);
-  woman.add(headCore);
-
-  const leftArmCore = foldedLimb(
-    new THREE.Vector3(-.18, 1.02, 0),
-    new THREE.Vector3(-.65, .76, 0),
-    paper
-  );
-  woman.add(leftArmCore);
-
-  const rightArmCore = foldedLimb(
-    new THREE.Vector3(.18, 1.02, 0),
-    new THREE.Vector3(.65, .76, 0),
-    paper
-  );
-  woman.add(rightArmCore);
-
-  const hairBack = panel([
-    [-.31, .91], [-.36, 1.27], [-.26, 1.5], [-.03, 1.58],
-    [.2, 1.5], [.3, 1.28], [.19, 1.03], [.05, .91]
-  ], .075, darkPaper, 0x202629, .78);
-  hairBack.position.z = -.07;
-  woman.add(hairBack);
-
-  const leftSkirt = panel([
-    [-.04, .73], [-.38, .05], [-.06, .08], [.02, .69]
-  ], .052, printOnLeft ? printedPaper : paper, 0x80695c, .5);
-  leftSkirt.position.z = -.015;
-  leftSkirt.rotation.y = .12;
-  woman.add(leftSkirt);
-
-  const centerSkirt = panel([
-    [-.04, .73], [-.06, .08], [.16, .04], [.09, .7]
-  ], .06, paper, 0x80695c, .54);
-  centerSkirt.position.z = .04;
-  centerSkirt.rotation.y = -.12;
-  woman.add(centerSkirt);
-
-  const rightSkirt = panel([
-    [.09, .7], [.16, .04], [.4, .09], [.18, .71]
-  ], .052, printOnLeft ? paper : printedPaper, 0x80695c, .5);
-  rightSkirt.position.z = -.01;
-  rightSkirt.rotation.y = .1;
-  woman.add(rightSkirt);
-
-  const torso = panel([
-    [-.2, .7], [-.24, 1.04], [-.12, 1.19], [.12, 1.18],
-    [.24, 1.03], [.18, .71], [0, .62]
-  ], .095, paper, 0x755e54, .58);
-  torso.position.z = .025;
-  woman.add(torso);
-
-  const collar = panel([
-    [-.17, 1.13], [0, .91], [.17, 1.13], [.08, 1.21], [0, 1.08], [-.08, 1.21]
-  ], .1, variant === 3 ? winePaper : paper, 0x694c46, .68);
-  collar.position.z = .09;
-  woman.add(collar);
-
-  const neck = panel([
-    [-.07, 1.15], [.07, 1.15], [.09, 1.31], [-.08, 1.31]
-  ], .07, paper, 0x755e54, .5);
+  neck.position.y = 1.2;
   woman.add(neck);
 
-  const face = panel([
-    [-.14, 1.3], [-.12, 1.47], [-.02, 1.55], [.13, 1.5],
-    [.16, 1.43], [.22, 1.39], [.16, 1.35], [.17, 1.29],
-    [.09, 1.23], [-.04, 1.23]
-  ], .085, paper, 0x6d554c, .62);
-  face.position.z = .035;
-  woman.add(face);
+  const head = mesh(new THREE.DodecahedronGeometry(.145, 0), paper, 0x6d554c, .46);
+  head.scale.set(.82, 1.12, .9);
+  head.position.set(0, 1.38, 0);
+  head.rotation.set(.03, -.12 + variant * .035, -.04);
+  woman.add(head);
 
-  const hairCrown = panel([
-    [-.27, 1.43], [-.16, 1.59], [.08, 1.63], [.25, 1.51],
-    [.1, 1.45], [-.08, 1.47]
-  ], .1, darkPaper, 0x171c1e, .84);
-  hairCrown.position.z = .08;
-  woman.add(hairCrown);
+  const faceProfile = panel([
+    [-.115, 1.31], [-.1, 1.46], [-.02, 1.53], [.11, 1.48],
+    [.15, 1.42], [.205, 1.39], [.15, 1.355], [.16, 1.31],
+    [.085, 1.255], [-.025, 1.25]
+  ], .025, paper, 0x6d554c, .52);
+  faceProfile.position.z = .14;
+  woman.add(faceProfile);
 
-  const hairFold = panel([
-    [-.23, 1.43], [.05, 1.57], [.2, 1.49], [-.08, 1.42]
-  ], .11, darkPaper, 0x171c1e, .82);
-  hairFold.position.z = .15;
-  woman.add(hairFold);
+  const hair = createLayeredHair({ darkPaper, variant });
+  woman.add(hair);
 
-  const leftArm = panel([
-    [-.19, 1.07], [-.28, .99], [-.58, .83], [-.66, .77],
-    [-.59, .72], [-.21, .86], [-.11, 1.02]
-  ], .064, paper, 0x755e54, .56);
-  leftArm.position.z = .035;
-  woman.add(leftArm);
+  const leftArm = createArticulatedArm({
+    side: -1,
+    paper,
+    printedPaper,
+    printed: variant === 1
+  });
+  const rightArm = createArticulatedArm({
+    side: 1,
+    paper,
+    printedPaper,
+    printed: variant === 5
+  });
+  woman.add(leftArm, rightArm);
 
-  const rightArm = panel([
-    [.18, 1.07], [.28, .99], [.58, .83], [.66, .77],
-    [.59, .72], [.21, .86], [.1, 1.02]
-  ], .064, paper, 0x755e54, .56);
-  rightArm.position.z = .03;
-  woman.add(rightArm);
-
-  const leftHand = mesh(new THREE.OctahedronGeometry(.055, 0), paper, 0x755e54, .46);
-  leftHand.position.set(-.65, .76, .035);
+  const leftHand = mesh(new THREE.DodecahedronGeometry(.052, 0), paper, 0x755e54, .42);
+  leftHand.position.set(-.65, .76, .025);
   woman.add(leftHand);
 
-  const rightHand = mesh(new THREE.OctahedronGeometry(.055, 0), paper, 0x755e54, .46);
-  rightHand.position.set(.65, .76, .03);
+  const rightHand = mesh(new THREE.DodecahedronGeometry(.052, 0), paper, 0x755e54, .42);
+  rightHand.position.set(.65, .76, .025);
   woman.add(rightHand);
 
-  const waistFold = panel([
-    [-.21, .74], [0, .62], [.22, .74], [.08, .8], [0, .73], [-.08, .8]
-  ], .082, variant % 3 === 0 ? winePaper : paper, 0x664a43, .54);
-  waistFold.position.z = .1;
-  woman.add(waistFold);
+  if (variant % 2 === 0) {
+    const trailingPage = panel([
+      [-.25, .65], [-.4, .5], [-.43, .08], [-.3, .18], [-.18, .61]
+    ], .022, printedPaper, 0x80695c, .36);
+    trailingPage.position.z = -.21;
+    trailingPage.rotation.y = -.16;
+    woman.add(trailingPage);
+  }
 
   woman.userData.pose = (sway, breath) => {
-    hairFold.rotation.z = sway * .018;
-    hairCrown.rotation.z = sway * -.009;
-    leftArm.rotation.z = breath * .006;
-    rightArm.rotation.z = breath * -.006;
-    centerSkirt.rotation.y = -.12 + sway * .025;
+    hair.rotation.z = sway * .016;
+    skirt.rotation.y = variant * .29 + sway * .024;
+    leftArm.rotation.z = breath * .004;
+    rightArm.rotation.z = breath * -.004;
+    head.rotation.z = -.04 + sway * .01;
   };
 
   woman.traverse((object) => {
@@ -268,6 +222,82 @@ function createStandingWoman({ paper, printedPaper, winePaper, darkPaper, shadow
     object.receiveShadow = shadows;
   });
   return woman;
+}
+
+function createPleatedSkirt({ paper, printedPaper, variant }) {
+  const segments = 14;
+  const positions = [];
+  const geometry = new THREE.BufferGeometry();
+
+  for (let index = 0; index < segments; index += 1) {
+    const angleA = index / segments * Math.PI * 2;
+    const angleB = (index + 1) / segments * Math.PI * 2;
+    const bottomRadiusA = index % 2 ? .275 : .38;
+    const bottomRadiusB = (index + 1) % 2 ? .275 : .38;
+    const topRadiusA = index % 2 ? .115 : .15;
+    const topRadiusB = (index + 1) % 2 ? .115 : .15;
+    const bottomA = [Math.cos(angleA) * bottomRadiusA, .05, Math.sin(angleA) * bottomRadiusA];
+    const bottomB = [Math.cos(angleB) * bottomRadiusB, .05, Math.sin(angleB) * bottomRadiusB];
+    const topA = [Math.cos(angleA) * topRadiusA, .74, Math.sin(angleA) * topRadiusA];
+    const topB = [Math.cos(angleB) * topRadiusB, .74, Math.sin(angleB) * topRadiusB];
+    positions.push(...bottomA, ...bottomB, ...topB, ...bottomA, ...topB, ...topA);
+    geometry.addGroup(index * 6, 6, (index + variant) % 6 === 0 ? 1 : 0);
+  }
+
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.computeVertexNormals();
+  return mesh(geometry, [paper, printedPaper], 0x80695c, .48);
+}
+
+function createLayeredHair({ darkPaper, variant }) {
+  const hair = new THREE.Group();
+  const cap = mesh(
+    new THREE.SphereGeometry(.175, 7, 4, 0, Math.PI * 2, 0, Math.PI * .72),
+    darkPaper,
+    0x22282a,
+    .66
+  );
+  cap.scale.set(1.08, 1, .96);
+  cap.position.y = 1.405;
+  cap.rotation.y = variant * .17;
+  hair.add(cap);
+
+  const ribbons = [
+    [[-.23, 1.47], [-.36, 1.27], [-.34, .96], [-.24, 1.08], [-.18, 1.37]],
+    [[-.14, 1.53], [-.27, 1.31], [-.25, .87], [-.13, 1.06], [-.06, 1.43]],
+    [[.02, 1.54], [.16, 1.37], [.2, .98], [.1, 1.13], [-.04, 1.45]],
+    [[.11, 1.5], [.28, 1.34], [.31, 1.08], [.19, 1.16], [.04, 1.43]],
+    [[-.22, 1.5], [-.02, 1.61], [.21, 1.52], [.06, 1.46], [-.12, 1.45]]
+  ];
+
+  ribbons.forEach((points, index) => {
+    const ribbon = panel(points, .025 + index * .004, darkPaper, 0x202629, .68);
+    ribbon.position.z = -.1 + index * .045;
+    ribbon.rotation.y = (index - 2) * .065;
+    ribbon.rotation.z = (variant % 3 - 1) * .012 * index;
+    hair.add(ribbon);
+  });
+  return hair;
+}
+
+function createArticulatedArm({ side, paper, printedPaper, printed }) {
+  const arm = new THREE.Group();
+  const material = printed ? printedPaper : paper;
+  const shoulder = new THREE.Vector3(.18 * side, 1.03, 0);
+  const elbow = new THREE.Vector3(.39 * side, .91 + (side > 0 ? .01 : -.015), .035);
+  const hand = new THREE.Vector3(.65 * side, .76, .025);
+  const upper = foldedLimb(shoulder, elbow, paper, .07, .085);
+  const forearm = foldedLimb(elbow, hand, material, .045, .065);
+  arm.add(upper, forearm);
+
+  const sleeve = panel(side < 0 ? [
+    [-.16, 1.08], [-.28, 1.02], [-.43, .91], [-.36, .83], [-.19, .91]
+  ] : [
+    [.16, 1.08], [.28, 1.02], [.43, .91], [.36, .83], [.19, .91]
+  ], .04, paper, 0x755e54, .5);
+  sleeve.position.z = .06;
+  arm.add(sleeve);
+  return arm;
 }
 
 function panel(points, depth, material, edgeColor, edgeOpacity) {
@@ -286,10 +316,10 @@ function panel(points, depth, material, edgeColor, edgeOpacity) {
   return mesh(geometry, material, edgeColor, edgeOpacity);
 }
 
-function foldedLimb(start, end, material) {
+function foldedLimb(start, end, material, radiusTop = .042, radiusBottom = .058) {
   const direction = end.clone().sub(start);
   const limb = mesh(
-    new THREE.CylinderGeometry(.042, .058, direction.length(), 4, 1, false),
+    new THREE.CylinderGeometry(radiusTop, radiusBottom, direction.length(), 5, 1, false),
     material,
     0x755e54,
     .48
