@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { detectDeviceProfile } from './device-profile.js';
-import { getActiveScene, loadScene, unloadScene } from './scene-registry.js?v=7';
+import { getActiveScene, loadScene, unloadScene } from './scene-registry.js?v=8';
 
 const stage = document.getElementById('stage');
 const laboratory = document.getElementById('laboratory');
@@ -48,8 +48,12 @@ async function init() {
 }
 
 async function startDemo() {
+  const isMultiplane = sceneId === 'women-circle-25d';
   const renderer = new THREE.WebGLRenderer({ antialias: profile.tier === 'high', alpha: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, profile.pixelRatio));
+  renderer.setPixelRatio(Math.min(
+    window.devicePixelRatio || 1,
+    isMultiplane ? 1.35 : profile.pixelRatio
+  ));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -59,23 +63,26 @@ async function startDemo() {
   stage.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x12080b, .105);
+  scene.fog = new THREE.FogExp2(0x090405, isMultiplane ? .035 : .105);
   const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, .05, 30);
-  camera.position.set(3.25, 3.05, 4.55);
+  camera.position.set(isMultiplane ? .15 : 3.25, isMultiplane ? 2.35 : 3.05, isMultiplane ? 4.75 : 4.55);
 
   const orbit = new OrbitControls(camera, renderer.domElement);
-  orbit.target.set(0, .48, 0);
+  orbit.target.set(0, isMultiplane ? .58 : .48, 0);
   orbit.enableDamping = true;
   orbit.dampingFactor = .055;
-  orbit.minDistance = 2.4;
-  orbit.maxDistance = 7;
+  orbit.minDistance = isMultiplane ? 3.2 : 2.4;
+  orbit.maxDistance = isMultiplane ? 5.8 : 7;
   orbit.maxPolarAngle = Math.PI * .49;
-  orbit.autoRotate = true;
+  orbit.minAzimuthAngle = isMultiplane ? -.34 : -Infinity;
+  orbit.maxAzimuthAngle = isMultiplane ? .34 : Infinity;
+  orbit.autoRotate = !isMultiplane;
   orbit.autoRotateSpeed = .42;
 
-  scene.add(new THREE.HemisphereLight(0xffe8d4, 0x25101b, 1.85));
+  scene.add(new THREE.HemisphereLight(0xffe8d4, 0x12060a, isMultiplane ? .28 : 1.85));
   const key = new THREE.DirectionalLight(0xffd6bd, 2.3);
   key.position.set(-2.4, 4.3, 2.2);
+  key.intensity = isMultiplane ? .38 : 2.3;
   key.castShadow = profile.shadows;
   if (profile.shadows) key.shadow.mapSize.set(1024, 1024);
   scene.add(key);

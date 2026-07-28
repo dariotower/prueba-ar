@@ -3,6 +3,7 @@ import { MindARThree } from 'mindar-image-three';
 import { loadScene, unloadScene } from './scene-registry.js';
 
 export async function startMindARSession({ container, targetUrl, targetIndex = 0, sceneId, profile, onStatus }) {
+  const isMultiplane = sceneId === 'women-circle-25d';
   const mindar = new MindARThree({
     container,
     imageTargetSrc: targetUrl,
@@ -16,14 +17,17 @@ export async function startMindARSession({ container, targetUrl, targetIndex = 0
   });
 
   const { renderer, scene, camera } = mindar;
-  renderer.setPixelRatio(profile.pixelRatio);
+  renderer.setPixelRatio(Math.min(
+    window.devicePixelRatio || 1,
+    isMultiplane ? 1.25 : profile.pixelRatio
+  ));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = profile.shadows;
 
-  scene.add(new THREE.HemisphereLight(0xffe7d4, 0x2b1020, 1.75));
+  scene.add(new THREE.HemisphereLight(0xffe7d4, 0x120509, isMultiplane ? .24 : 1.75));
   const anchor = mindar.addAnchor(targetIndex);
   const wrapper = new THREE.Group();
-  wrapper.scale.setScalar(.62);
+  wrapper.scale.setScalar(isMultiplane ? .4 : .62);
   wrapper.rotation.x = Math.PI * .5;
   wrapper.position.z = .02;
   anchor.group.add(wrapper);

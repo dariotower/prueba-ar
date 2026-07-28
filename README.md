@@ -62,13 +62,28 @@ El reproductor se prepara al iniciar la experiencia y comienza a reproducirse cu
 La ruta `diorama.html` incorpora la primera arquitectura para ilustraciones interiores:
 
 - módulo de escenas Three.js cargado bajo demanda;
-- mujer origami y fogata de papel procedurales;
+- escena 2.5D de seis mujeres tomadas de las manos alrededor de una fogata;
+- cuatro planos transparentes para paralaje, llama, resplandor y figuras;
+- página real escaneada como piso en el laboratorio;
+- plano transparente que recibe sombras cuando se usa la cámara;
+- máscara oscura exterior para aislar visualmente el libro;
 - aparición tipo libro pop-up;
 - humo, fuego y brasas animados;
-- exploración orbital táctil;
+- movimiento táctil limitado a un arco seguro para la ilusión 2.5D;
 - perfiles 3D completo, 3D liviano y fallback 2.5D;
 - adaptador MindAR preparado para `assets/targets/interiores.mind`;
 - liberación de geometrías, materiales y texturas al cerrar una escena.
+
+Prueba directa sin cámara:
+
+```text
+diorama.html?scene=women-circle-25d&quality=high
+```
+
+Para activar el escaneo de la página hay que compilar
+`assets/diorama/women-circle-25d/book-page-reference-v1.jpg` con el compilador
+de imágenes de MindAR y guardar el resultado como
+`assets/targets/interiores.mind`.
 
 La lista de materiales pendientes está en `docs/asset-checklist.md`.
 
